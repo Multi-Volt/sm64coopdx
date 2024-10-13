@@ -287,18 +287,30 @@ void obj_apply_scale_to_matrix(struct Object *obj, Mat4 dst, Mat4 src) {
 }
 
 void create_transformation_from_matrices(Mat4 dest, Mat4 a1, Mat4 a2) {
+    f32 temp0, temp1, temp2;
+
     // Compute the rotation part (upper-left 3x3)
     for (int i = 0; i < 3; i++) {
-        dest[i][0] = a1[i][0] * a2[0][0] + a1[i][1] * a2[1][0] + a1[i][2] * a2[2][0];
-        dest[i][1] = a1[i][0] * a2[0][1] + a1[i][1] * a2[1][1] + a1[i][2] * a2[2][1];
-        dest[i][2] = a1[i][0] * a2[0][2] + a1[i][1] * a2[1][2] + a1[i][2] * a2[2][2];
-        dest[i][3] = 0.0f;  // Set last column to 0.0f for rows [0..2]
+        temp0 = a1[i][0];
+        temp1 = a1[i][1];
+        temp2 = a1[i][2];
+
+        dest[i][0] = temp0 * a2[0][0] + temp1 * a2[0][1] + temp2 * a2[0][2];
+        dest[i][1] = temp0 * a2[1][0] + temp1 * a2[1][1] + temp2 * a2[1][2];
+        dest[i][2] = temp0 * a2[2][0] + temp1 * a2[2][1] + temp2 * a2[2][2];
+        dest[i][3] = 0.0f;  // Set last column to 0.0f for rows 0-2
     }
 
-    // Compute the translation part
-    dest[3][0] = a1[3][0] + (a1[0][0] * a2[3][0] + a1[0][1] * a2[3][1] + a1[0][2] * a2[3][2]);
-    dest[3][1] = a1[3][1] + (a1[1][0] * a2[3][0] + a1[1][1] * a2[3][1] + a1[1][2] * a2[3][2]);
-    dest[3][2] = a1[3][2] + (a1[2][0] * a2[3][0] + a1[2][1] * a2[3][1] + a1[2][2] * a2[3][2]);
+    // Compute the adjusted translation component efficiently
+    temp0 = a1[3][0] - a2[3][0];
+    temp1 = a1[3][1] - a2[3][1];
+    temp2 = a1[3][2] - a2[3][2];
+
+    // Compute dest[3][0..2]
+    dest[3][0] = temp0 * a2[0][0] + temp1 * a2[0][1] + temp2 * a2[0][2];
+    dest[3][1] = temp0 * a2[1][0] + temp1 * a2[1][1] + temp2 * a2[1][2];
+    dest[3][2] = temp0 * a2[2][0] + temp1 * a2[2][1] + temp2 * a2[2][2];
+
     dest[3][3] = 1.0f;  // Set bottom-right element to 1.0f
 }
 
